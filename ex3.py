@@ -120,7 +120,7 @@ white = np.vstack(np.where(im == 255))
 black = np.vstack(np.where(im == 0))
 
 mask = np.array([[0,1,0],[1,1,1],[0,1,0]])
-mask = np.ones((3,3))
+# mask = np.ones((3,3))
 # im = np.array([[1,0,0,0,0],[0,1,1,0,0],[0,1,1,0,0],[0,1,1,1,0],[0,1,1,1,0]])
 # im = np.vstack([im,np.ones((5,5))])
 # im = im*255
