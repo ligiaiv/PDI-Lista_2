@@ -111,7 +111,7 @@ for seed in seeds.T:
 	print("here")
 	i+=1
 	print(seed)
-	new_region = grow(seed,im,region,70)
+	new_region = grow(seed,im,region,20)
 	region+=new_region
 	print(len(region))
 	if i==2:
