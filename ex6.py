@@ -33,6 +33,7 @@ def erosao(im,A,B):
 
 
 		partial = padded[x-l:x+l+1,y-h:y+h+1]/255
+
 		if (bool(partial[B.astype(bool)].min())):
 			new_A = np.hstack([new_A,pixel[:,None]])
 
@@ -116,7 +117,7 @@ mask = np.array([[0,1,0],[1,1,1],[0,1,0]])
 cv2.imwrite("imagens/ex6/c - thresholded.png",(seed_im).astype(np.uint8))
 
 regioes = get_regions(seed_im)
-print(len(regioes))
+print("REGIOES:",len(regioes))
 # for regiao in regioes:
 # 	# print(len)
 # 	print(regiao)
@@ -124,19 +125,32 @@ print(len(regioes))
 
 
 
-
 seeds = np.ndarray((2,0))
+i  =0
 for regiao in regioes:
-	seed_im = regiao
+	regiao = np.array(regiao).T
+	print('regiao',regiao.shape)
+
+
+
+	i+=1
+	im_reg = np.zeros(im.shape)
+	# print("maxim",regiao[1].max())
+	im_reg[regiao[0],regiao[1]] = 255
+	
+	white_reg = regiao
+	print("\n\n-----------------------------",i)
 	seeds_reg = np.ndarray((2,0))
-	while((seed_im==255).sum()>0):
+	while((im_reg==255).sum()>0):
 		seed_im_final = seed_im
-		seeds_reg = white
-		white,seed_im = erosao(seed_im,white,mask)
-
-	seeds = np.vstack([seeds,seeds_reg])
+		seeds_reg = white_reg
+		white_reg,im_reg = erosao(im_reg,white_reg,mask)
+		print('white_reg',white_reg.shape)
+	print('seeds',seeds.shape)
+	print('seeds_reg',seeds_reg.shape)
+	seeds = np.hstack([seeds,seeds_reg])
 cv2.imwrite("imagens/ex6/d - seeds.png",(seed_im_final).astype(np.uint8))
-
+print(seeds.shape)
 
 T = 5
 def grow(seed,im,region,T):
@@ -155,7 +169,8 @@ def grow(seed,im,region,T):
 
 region = []
 i = 0
-print('shape seeds',seeds.shape)
+print('Seeds final',seeds.shape)
+seeds = seeds.astype(int)
 for seed in seeds.T:
 	print("here")
 	i+=1
