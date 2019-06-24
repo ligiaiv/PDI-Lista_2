@@ -71,7 +71,42 @@ def abertura(im,B):
 	return dilatacao(im2,black,B)
 
 
+
+def get_neighboors(vector,index, regiao):
+	regiao.append(index)
+
+	pixel = vector[:,index]
+
+	vizinhos=np.where(((vector[0,:]>= pixel[0]-1) & (vector[0,:]<= pixel[0]+1))     &     ((vector[1,:]>= pixel[1]-1) & (vector[1,:]<= pixel[1]+1)))
+	vizinhos = vizinhos[0]
+	for idx in vizinhos:
+		if idx not in regiao:
+			regiao = get_neighboors(vector,idx,regiao)
+	return regiao
+
+
 start = time.time()
+
+def get_regions(im):
+	white = np.vstack(np.where(im == 255))
+	regioes = []
+	
+	while(len(white[0])>0):
+		idxs = get_neighboors(white,0,[])
+		regiao = white.T[idxs]
+		regioes.append(regiao)
+		white = np.delete(white,idxs,axis = 1)
+	return regioes
+
+
+
+
+
+
+
+
+
+
 
 im = cv2.imread("imagens/Fig10.40(a).jpg",0).astype(float)
 seed_im = np.zeros(im.shape)
@@ -80,12 +115,26 @@ white = np.vstack(np.where(seed_im == 255))
 mask = np.array([[0,1,0],[1,1,1],[0,1,0]])
 cv2.imwrite("imagens/ex6/c - thresholded.png",(seed_im).astype(np.uint8))
 
-while((seed_im==255).sum()>0):
-	seed_im_final = seed_im
-	seeds = white
-	white,seed_im = erosao(seed_im,white,mask)
-	# print(white.shape)
-	# print((seed==255).sum())
+regioes = get_regions(seed_im)
+print(len(regioes))
+# for regiao in regioes:
+# 	# print(len)
+# 	print(regiao)
+
+
+
+
+
+seeds = np.ndarray((2,0))
+for regiao in regioes:
+	seed_im = regiao
+	seeds_reg = np.ndarray((2,0))
+	while((seed_im==255).sum()>0):
+		seed_im_final = seed_im
+		seeds_reg = white
+		white,seed_im = erosao(seed_im,white,mask)
+
+	seeds = np.vstack([seeds,seeds_reg])
 cv2.imwrite("imagens/ex6/d - seeds.png",(seed_im_final).astype(np.uint8))
 
 
