@@ -7,7 +7,7 @@ import itertools
 import time
 from scipy import ndimage
 
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(20000)
 
 
 def pad(im,B):
@@ -149,19 +149,27 @@ for regiao in regioes:
 	print('seeds',seeds.shape)
 	print('seeds_reg',seeds_reg.shape)
 	seeds = np.hstack([seeds,seeds_reg])
+	print('Seeds.shape',seeds.shape)
+
 cv2.imwrite("imagens/ex6/d - seeds.png",(seed_im_final).astype(np.uint8))
-print(seeds.shape)
+print('Seeds.shape',seeds.shape)
 
 T = 5
-def grow(seed,im,region,T):
+
+def grow(seed,im,region,T,i):
 	X,Y = seed
+	# print('X',X,'Y',Y)
+	i+=1
+	# print('i:',i)
 	pixel = im[X,Y]
-	for x in range(X-1,X+2):
-		for y in range(Y-1,Y+2):
+	for x in range(np.max([X-1,0]),np.min([X+2,im.shape[0]])):
+		for y in range(np.max([Y-1,0]),np.min([Y+2,im.shape[1]])):
 			if (x,y) not in region: 
 				if np.abs(im[x,y] - pixel) < T :
+					# print("diferenca:",np.abs(im[x,y] - pixel))
+					# print("append")
 					region.append((x,y))
-					region = grow((x,y),im,region,T) 
+					region = grow((x,y),im,region,T,i) 
 
 	return region
 
@@ -172,14 +180,14 @@ i = 0
 print('Seeds final',seeds.shape)
 seeds = seeds.astype(int)
 for seed in seeds.T:
-	print("here")
-	i+=1
-	print(seed)
-	new_region = grow(seed,im,region,20)
-	region+=new_region
-	print(len(region))
-	if i==2:
-		print(region)
+	# print("here")
+	# print(seed)
+
+	region = grow(seed,im,region,5,0)
+	# region+=new_region
+	# print(len(region))
+	# if i==2:
+	# 	print(region)
 	# 	quit()
 print("out")
 
