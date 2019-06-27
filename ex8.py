@@ -1,37 +1,36 @@
-from PIL import Image
 import numpy as np
 import cv2
-import sys
-from matplotlib import pyplot as plt
-import itertools
+import pandas as pd
 import time
-from scipy import ndimage
 
 def get_mpq(p,q,image):
 	m,n = image.shape
 	x_vector = (np.arange(m)**p)[:,None]
 	y_vector = (np.arange(n)**q)[None,:]
+	# print((x_vector*y_vector)*image)
 	mpq = ((x_vector*y_vector)*image).sum()
 	return mpq
 
 def get_mu_pq(p,q,image):
 	m00 = image.sum()
+	# m00 = get_mpq(0,0,image)
 	x_ = get_mpq(1,0,image)/m00
 	y_ = get_mpq(0,1,image)/m00
 
 	m,n = image.shape
-	x_vector = (np.arange(m)**p)[:,None] - x_
-	y_vector = (np.arange(n)**q)[None,:] - y_
+	x_vector = ((np.arange(m) - x_)**p)[:,None]
+	y_vector = ((np.arange(n) - y_)**q)[None,:]
 	mu_pq = ((x_vector*y_vector)*image).sum()
 	return mu_pq
 
 def get_eta_pq(p,q,image):
 
-	gama = (p+q)/2 + 1
+	gama = ((p+q)/2) + 1
 
 	m,n = image.shape
 	mu_00 = image.sum()
-	eta_pq = get_mu_pq(p,q,image)/mu_00
+	# mu_00 = get_mu_pq(0,0,image)
+	eta_pq = get_mu_pq(p,q,image)/np.power(mu_00,gama)
 	return eta_pq
 
 def moment_invariants(image):
@@ -44,20 +43,18 @@ def moment_invariants(image):
 	eta30 = get_eta_pq(3,0,image)
 
 	phi1 = eta20+eta02
-	phi2 = (eta20-eta02)**2 + 4*eta11**2
+	phi2 = (eta20-eta02)**2 + 4*(eta11**2)
 	phi3 = (eta30-3*eta12)**2 + (3*eta21-eta03)**2
 	phi4 = (eta30 + eta12)**2 + (eta21 +eta03)**2
-	phi5 = (eta30 - 3*eta12)*((eta30+eta12)**2 - 3*(eta21+eta03)**2)+
+	phi5 = (eta30 - 3*eta12)*((eta30+eta12)**2 - 3*(eta21+eta03)**2)+\
 			(3*eta21-eta03)*(eta21+eta03)*(3*(eta30+eta12)**2 -(eta21+eta03)**2)
 	phi6 = (eta20-eta02)*((eta30+eta12)**2-(eta21+eta03)**2)+4*eta11*(eta30+eta12)*(eta21+eta03)
-	phi7 = (3*eta21 - eta03)*(eta30+eta12)*((eta30+eta12)**2-3*(eta21+eta03)**2)+
+	phi7 = (3*eta21 - eta03)*(eta30+eta12)*((eta30+eta12)**2-3*(eta21+eta03)**2)+\
 			(3*eta12 - eta30)*(eta21+eta03)*(3*(eta30+eta12)**2 - (eta21+eta03)**2)
 
-	return [phi1,phi2,phi3,phi4,phi5,phi6,phi7]
-
-		
-
-
+	phi = np.array([phi1,phi2,phi3,phi4,phi5,phi6,phi7])
+	phi = np.sign(phi)*np.abs(np.log10(np.abs(phi))).tolist()
+	return phi
 
 
 
@@ -65,106 +62,38 @@ def moment_invariants(image):
 
 
 
+# imex = np.ones((10,10))*5
+# print(get_mu_pq(0,0,im))
+# print(im.sum())
 
+# quit()
+
+
+
+
+imagens = {}
 im = cv2.imread("imagens/lena.tif",0).astype(float)
-seed_im = np.zeros(im.shape)
-seed_im[im>254] =255
-white = np.vstack(np.where(seed_im == 255))
-mask = np.array([[0,1,0],[1,1,1],[0,1,0]])
-cv2.imwrite("imagens/ex6/c - thresholded.png",(seed_im).astype(np.uint8))
 
-regioes = get_regions(seed_im)
-print("REGIOES:",len(regioes))
-# for regiao in regioes:
-# 	# print(len)
-# 	print(regiao)
+rows,cols = im.shape
+imagens['im'] = im
+imagens['reduzido'] = cv2.resize(im,None,fx=0.5, fy=0.5)
 
+M90 = cv2.getRotationMatrix2D(((cols-1)/2.0,(rows-1)/2.0),90,1)
+M180 = cv2.getRotationMatrix2D(((cols-1)/2.0,(rows-1)/2.0),180,1)
 
+imagens["90"] = cv2.warpAffine(im,M90,(cols,rows))
+imagens["80"] = cv2.warpAffine(im,M180,im.shape)
 
-
-seeds = np.ndarray((2,0))
-i  =0
-for regiao in regioes:
-	regiao = np.array(regiao).T
-	print('regiao',regiao.shape)
-
-
-
-	i+=1
-	im_reg = np.zeros(im.shape)
-	# print("maxim",regiao[1].max())
-	im_reg[regiao[0],regiao[1]] = 255
-	
-	white_reg = regiao
-	print("\n\n-----------------------------",i)
-	seeds_reg = np.ndarray((2,0))
-	while((im_reg==255).sum()>0):
-		seed_im_final = seed_im
-		seeds_reg = white_reg
-		white_reg,im_reg = erosao(im_reg,white_reg,mask)
-		print('white_reg',white_reg.shape)
-	print('seeds',seeds.shape)
-	print('seeds_reg',seeds_reg.shape)
-	seeds = np.hstack([seeds,seeds_reg])
-	print('Seeds.shape',seeds.shape)
-
-cv2.imwrite("imagens/ex6/d - seeds.png",(seed_im_final).astype(np.uint8))
-print('Seeds.shape',seeds.shape)
-
-T = 5
-
-def grow(seed,im,region,T,i):
-	X,Y = seed
-	# print('X',X,'Y',Y)
-	i+=1
-	# print('i:',i)
-	pixel = im[X,Y]
-	for x in range(np.max([X-1,0]),np.min([X+2,im.shape[0]])):
-		for y in range(np.max([Y-1,0]),np.min([Y+2,im.shape[1]])):
-			if (x,y) not in region: 
-				if np.abs(im[x,y] - pixel) < T :
-					# print("diferenca:",np.abs(im[x,y] - pixel))
-					# print("append")
-					region.append((x,y))
-					region = grow((x,y),im,region,T,i) 
-
-	return region
-
-
-
-region = []
-i = 0
-print('Seeds final',seeds.shape)
-seeds = seeds.astype(int)
-for seed in seeds.T:
-	# print("here")
-	# print(seed)
-
-	region = grow(seed,im,region,5,0)
-	# region+=new_region
-	# print(len(region))
-	# if i==2:
-	# 	print(region)
-	# 	quit()
-print("out")
-
-
-
-region = np.array(region).T
-print("here2")
-print(region.shape)
-new_im = np.zeros(im.shape)
-print("here3")
-
-new_im[region[0],region[1]] = 255
-print("here4")
-
-cv2.imwrite("imagens/ex6/i - region.png",(new_im).astype(np.uint8))
-print("here5")
-
-# white = np.vstack(np.where(seed == 255))
-# black = np.vstack(np.where(seed == 0))
-
+start = time.time()
+moment_dict = {}
+for name,img in imagens.items():
+	cv2.imwrite("imagens/ex8/"+name+".png",img.astype(np.uint8))
+	moment_dict[name]=moment_invariants(img)
+df = pd.DataFrame.from_dict(moment_dict, orient='index',columns=list(range(1,8)))
+print(df)
+# cv2.imwrite("imagens/ex8/reduzida.png",reduzido.astype(np.uint8))
+# cv2.imwrite("imagens/ex8/rot90.png",rotacionado90.astype(np.uint8))
+# cv2.imwrite("imagens/ex8/rot180.png",rotacionado180.astype(np.uint8))
 end = time.time()
 
 print('Tempo de Execução: ', end-start)
