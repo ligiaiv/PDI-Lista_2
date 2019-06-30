@@ -76,7 +76,8 @@ im = cv2.imread("imagens/lena.tif",0).astype(float)
 
 rows,cols = im.shape
 imagens['im'] = im
-imagens['reduzido'] = cv2.resize(im,None,fx=0.5, fy=0.5)
+imagens['reduzido'] = np.zeros(im.shape)
+imagens['reduzido'][int(rows/4):int(-rows/4),int(cols/4):int(-cols/4)] = cv2.resize(im,None,fx=0.5, fy=0.5)
 
 M90 = cv2.getRotationMatrix2D(((cols-1)/2.0,(rows-1)/2.0),90,1)
 M180 = cv2.getRotationMatrix2D(((cols-1)/2.0,(rows-1)/2.0),180,1)
@@ -91,6 +92,8 @@ for name,img in imagens.items():
 	moment_dict[name]=moment_invariants(img)
 df = pd.DataFrame.from_dict(moment_dict, orient='index',columns=list(range(1,8)))
 print(df)
+df = df.round(5)
+df.to_csv("imagens/ex8/tabela.csv", sep='\t', encoding='utf-8')
 # cv2.imwrite("imagens/ex8/reduzida.png",reduzido.astype(np.uint8))
 # cv2.imwrite("imagens/ex8/rot90.png",rotacionado90.astype(np.uint8))
 # cv2.imwrite("imagens/ex8/rot180.png",rotacionado180.astype(np.uint8))

@@ -58,7 +58,7 @@ def HSI2BGR(H,S,I):
 	return im
 
 
-im = cv2.imread("imagens/peppers.tif",1).astype(np.float64)
+im = cv2.imread("imagens/peppers.tiff",1).astype(np.float64)
 # print(type(im)) 
 # im[:,:,2] = 1-im[:,:,2]
 R = im[:,:,2]

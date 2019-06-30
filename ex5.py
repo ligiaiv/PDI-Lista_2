@@ -25,12 +25,16 @@ cv2.imwrite("imagens/ex5/estrada_gray_limiar.png",im_gray.astype(np.uint8))
 # Tenta encontrar as linhas brancas na imagem colorida tentando encontrar os pixels cujas 3 cores possuam alto valor
 im_cor = np.zeros(im_gray.shape)
 im_cor[np.invert(np.bitwise_and(im[:,:,0]<250 , im[:,:,1]<250 , im[:,:,2]<250))]=255
-cv2.imwrite("imagens/ex5/estrada_cor.png",im_cor.astype(np.uint8))
+cv2.imwrite("imagens/ex5/estrada_cor_or.png",(np.invert(im_cor.astype(bool))*255).astype(np.uint8))
+
+im_cor = np.zeros(im_gray.shape)
+im_cor[np.invert(np.bitwise_or(im[:,:,0]<250 , im[:,:,1]<250 , im[:,:,2]<250))]=255
+cv2.imwrite("imagens/ex5/estrada_cor_and.png",(np.invert(im_cor.astype(bool))*255).astype(np.uint8))
 
 # Une os resultados das 2 técnicas para uma imagem melhor
 im_gray = np.bitwise_and(im_cor.astype(bool),im_gray.astype(bool))*255
-cv2.imwrite("imagens/ex5/estrada_mix.png",im_gray.astype(np.uint8))
-
+cv2.imwrite("imagens/ex5/estrada_mix.png",(np.invert(im_gray.astype(bool))*255).astype(np.uint8))
+im_gray = im_cor
 
 # Filtro de sobel que foi implementado, porém não foi usado pois outra técnica produziu resultado melhor
 def sobel(im):
@@ -86,7 +90,8 @@ plano_parametros, tetas, rhos = hough(im_gray)
 
 #imprime o plano de parâmetros invertendo o eixo vertical, pois a direção na imagem é inversa ao do plano cartesiano
 plano_parametros_img = np.flip(plano_parametros*255/np.max(plano_parametros),axis = 0) 
-cv2.imwrite("imagens/ex5/plano_parametros.png",(plano_parametros_img).astype(np.uint8))
+print("MAX",np.max(plano_parametros))
+cv2.imwrite("imagens/ex5/plano_parametros.png",(plano_parametros_img*25).astype(np.uint8))
 
 #pega os 4 pixels de maior luminosidade. Obs: 4 pois devido a a questões de resolução o maior ponto de luminosidade ocupava mais de 1 pixel
 N = 4

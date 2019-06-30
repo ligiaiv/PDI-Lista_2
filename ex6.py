@@ -148,19 +148,30 @@ for regiao in regioes:
 		print('white_reg',white_reg.shape)
 	print('seeds',seeds.shape)
 	print('seeds_reg',seeds_reg.shape)
-	seeds = np.hstack([seeds,seeds_reg])
+	random_seed = seeds_reg[:,np.random.randint(0,seeds_reg.shape[1])][:,None]
+	seeds = np.hstack([seeds,random_seed])
 	print('Seeds.shape',seeds.shape)
+seed_im_final = np.zeros(im.shape)
+print("SEEDS",seeds)
+seeds = seeds.astype(int)
 
+seed_im_final[seeds[0,:],seeds[1,:]] = 255
 cv2.imwrite("imagens/ex6/d - seeds.png",(seed_im_final).astype(np.uint8))
 print('Seeds.shape',seeds.shape)
 
-T = 5
+T = 10
+im_3d = np.ndarray(shape = im.shape+(0,),dtype = int)
 
+for delta_x in range(-1,1):
+	for delta_y in range(-1,1):
+		shifted = np.roll(im, delta_x, axis=0)
+		shifted = np.roll(shifted, delta_y, axis=0)
+		im_3d = np.dstack((im_3d,shifted))
 def grow(seed,im,region,T,i):
 	X,Y = seed
 	# print('X',X,'Y',Y)
 	i+=1
-	# print('i:',i)
+	print('i:',i)
 	pixel = im[X,Y]
 	for x in range(np.max([X-1,0]),np.min([X+2,im.shape[0]])):
 		for y in range(np.max([Y-1,0]),np.min([Y+2,im.shape[1]])):
@@ -170,39 +181,67 @@ def grow(seed,im,region,T,i):
 					# print("append")
 					region.append((x,y))
 					region = grow((x,y),im,region,T,i) 
-
+				else:
+					print("bigger")
+			# else:
+				# print("in")
 	return region
 
-
+def grow2(im,region,new_pixels,T):
+	new_region = region.copy()
+	white = np.vstack(np.where(new_pixels == 1))
+	for x,y in white.T:
+		pixel = im[x,y]
+		partial = im[x-1:x+2,y-1:y+2]
+		ok = (np.abs(partial - pixel) < T)
+		new_region[x-1:x+2,y-1:y+2] = np.bitwise_or(new_region[x-1:x+2,y-1:y+2],ok)
+	new_pixels = new_region^region
+	return new_region,new_pixels
 
 region = []
 i = 0
 print('Seeds final',seeds.shape)
 seeds = seeds.astype(int)
-for seed in seeds.T:
-	# print("here")
-	# print(seed)
 
-	region = grow(seed,im,region,5,0)
-	# region+=new_region
-	# print(len(region))
-	# if i==2:
-	# 	print(region)
-	# 	quit()
-print("out")
+total_branco = []
+for T in range(1,6):
+	region2 = seed_im_final.astype(bool)
+	region1 = np.zeros(region2.shape)
+	print('\nr1',region1.sum())
+	print('r2',region2.sum())
+	new = region2.copy()
+	while new.sum()>0:
+		# print("oi")
+		region1 = region2.copy()
+		region2,new = grow2(im,region2,new,T)
+		print('\nnew',new.sum())
+		print('r2',region2.sum())
+	total_branco.append(region2.sum())
+	cv2.imwrite("imagens/ex6/i - region - T"+str(T)+".png",(region2*255).astype(np.uint8))
+print(total_branco)
+# for seed in seeds.T:
+# 	# print("here")
+# 	# print(seed)
+
+# 	region = grow(seed,im,region,T,0)
+# 	# region+=new_region
+# 	# print(len(region))
+# 	# if i==2:
+# 	# 	print(region)
+# 	# 	quit()
+# print("out")
 
 
 
-region = np.array(region).T
-print("here2")
-print(region.shape)
-new_im = np.zeros(im.shape)
-print("here3")
+# region = np.array(region).T
+# print("here2")
+# print(region.shape)
+# new_im = np.zeros(im.shape)
+# print("here3")
 
-new_im[region[0],region[1]] = 255
-print("here4")
+# new_im[region[0],region[1]] = 255
+# print("here4")
 
-cv2.imwrite("imagens/ex6/i - region.png",(new_im).astype(np.uint8))
 print("here5")
 
 # white = np.vstack(np.where(seed == 255))
