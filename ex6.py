@@ -205,6 +205,7 @@ seeds = seeds.astype(int)
 
 total_branco = []
 for T in range(1,6):
+	im_final = np.zeros(im.shape)
 	region2 = seed_im_final.astype(bool)
 	region1 = np.zeros(region2.shape)
 	print('\nr1',region1.sum())
@@ -217,7 +218,8 @@ for T in range(1,6):
 		print('\nnew',new.sum())
 		print('r2',region2.sum())
 	total_branco.append(region2.sum())
-	cv2.imwrite("imagens/ex6/i - region - T"+str(T)+".png",(region2*255).astype(np.uint8))
+	im_final[region2] = im[region2]
+	cv2.imwrite("imagens/ex6/i - region - T"+str(T)+".png",im_final.astype(np.uint8))
 print(total_branco)
 # for seed in seeds.T:
 # 	# print("here")
