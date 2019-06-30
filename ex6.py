@@ -1,13 +1,19 @@
-from PIL import Image
 import numpy as np
 import cv2
 import sys
 from matplotlib import pyplot as plt
 import itertools
-import time
-from scipy import ndimage
+import time,os
 
 sys.setrecursionlimit(20000)
+
+
+
+if not os.path.exists("imagens"):
+	print("Crie uma pasta 'imagens/' no mesmo diretorio deste script. As imagens originais devem estar nesta pasta.")
+	quit()
+elif not os.path.exists("imagens/ex6"):
+    os.makedirs("imagens/ex6")
 
 
 def pad(im,B):
@@ -118,9 +124,6 @@ cv2.imwrite("imagens/ex6/c - thresholded.png",(seed_im).astype(np.uint8))
 
 regioes = get_regions(seed_im)
 print("REGIOES:",len(regioes))
-# for regiao in regioes:
-# 	# print(len)
-# 	print(regiao)
 
 
 
@@ -204,7 +207,7 @@ print('Seeds final',seeds.shape)
 seeds = seeds.astype(int)
 
 total_branco = []
-for T in range(1,6):
+for T in range(1,10,2):
 	im_final = np.zeros(im.shape)
 	region2 = seed_im_final.astype(bool)
 	region1 = np.zeros(region2.shape)
@@ -219,35 +222,9 @@ for T in range(1,6):
 		print('r2',region2.sum())
 	total_branco.append(region2.sum())
 	im_final[region2] = im[region2]
-	cv2.imwrite("imagens/ex6/i - region - T"+str(T)+".png",im_final.astype(np.uint8))
+	cv2.imwrite("imagens/ex6/i-region-T"+str(T)+".png",im_final.astype(np.uint8))
 print(total_branco)
-# for seed in seeds.T:
-# 	# print("here")
-# 	# print(seed)
 
-# 	region = grow(seed,im,region,T,0)
-# 	# region+=new_region
-# 	# print(len(region))
-# 	# if i==2:
-# 	# 	print(region)
-# 	# 	quit()
-# print("out")
-
-
-
-# region = np.array(region).T
-# print("here2")
-# print(region.shape)
-# new_im = np.zeros(im.shape)
-# print("here3")
-
-# new_im[region[0],region[1]] = 255
-# print("here4")
-
-print("here5")
-
-# white = np.vstack(np.where(seed == 255))
-# black = np.vstack(np.where(seed == 0))
 
 end = time.time()
 

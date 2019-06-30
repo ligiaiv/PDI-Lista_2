@@ -1,15 +1,24 @@
-from PIL import Image
 import numpy as np
 import cv2
 import sys
 from matplotlib import pyplot as plt
 import itertools
-import time
-from scipy import ndimage
+import time,os
 
 from conv2D import conv2D
 
+
+if not os.path.exists("imagens"):
+	print("Crie uma pasta 'imagens/' no mesmo diretorio deste script. As imagens originais devem estar nesta pasta.")
+	quit()
+elif not os.path.exists("imagens/ex5"):
+    os.makedirs("imagens/ex5")
+
+
 start = time.time()
+
+
+
 
 # Lê a imagem colorida
 im = cv2.imread("imagens/estrada.png",1).astype(float)

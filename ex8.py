@@ -1,19 +1,23 @@
 import numpy as np
 import cv2
 import pandas as pd
-import time
+import time,os
+
+if not os.path.exists("imagens"):
+	print("Crie uma pasta 'imagens/' no mesmo diretorio deste script. As imagens originais devem estar nesta pasta.")
+	quit()
+elif not os.path.exists("imagens/ex8"):
+    os.makedirs("imagens/ex8")
 
 def get_mpq(p,q,image):
 	m,n = image.shape
 	x_vector = (np.arange(m)**p)[:,None]
 	y_vector = (np.arange(n)**q)[None,:]
-	# print((x_vector*y_vector)*image)
 	mpq = ((x_vector*y_vector)*image).sum()
 	return mpq
 
 def get_mu_pq(p,q,image):
 	m00 = image.sum()
-	# m00 = get_mpq(0,0,image)
 	x_ = get_mpq(1,0,image)/m00
 	y_ = get_mpq(0,1,image)/m00
 
@@ -29,7 +33,6 @@ def get_eta_pq(p,q,image):
 
 	m,n = image.shape
 	mu_00 = image.sum()
-	# mu_00 = get_mu_pq(0,0,image)
 	eta_pq = get_mu_pq(p,q,image)/np.power(mu_00,gama)
 	return eta_pq
 
@@ -62,14 +65,6 @@ def moment_invariants(image):
 
 
 
-# imex = np.ones((10,10))*5
-# print(get_mu_pq(0,0,im))
-# print(im.sum())
-
-# quit()
-
-
-
 
 imagens = {}
 im = cv2.imread("imagens/lena.tif",0).astype(float)
@@ -94,9 +89,7 @@ df = pd.DataFrame.from_dict(moment_dict, orient='index',columns=list(range(1,8))
 print(df)
 df = df.round(5)
 df.to_csv("imagens/ex8/tabela.csv", sep='\t', encoding='utf-8')
-# cv2.imwrite("imagens/ex8/reduzida.png",reduzido.astype(np.uint8))
-# cv2.imwrite("imagens/ex8/rot90.png",rotacionado90.astype(np.uint8))
-# cv2.imwrite("imagens/ex8/rot180.png",rotacionado180.astype(np.uint8))
+
 end = time.time()
 
 print('Tempo de Execução: ', end-start)

@@ -1,9 +1,15 @@
-from PIL import Image
 import numpy as np
 import cv2
 import sys
 from matplotlib import pyplot as plt
-import itertools
+import itertools,os
+
+
+if not os.path.exists("imagens"):
+	print("Crie uma pasta 'imagens/' no mesmo diretorio deste script. As imagens originais devem estar nesta pasta.")
+	quit()
+elif not os.path.exists("imagens/ex2"):
+    os.makedirs("imagens/ex2")
 
 
 def BGR2HSI(im):
@@ -17,14 +23,9 @@ def BGR2HSI(im):
 	gray = (np.bitwise_and(R == B, R == G))
 
 	teta = np.ndarray(shape =R.shape)
-	# raiz = np.sqrt(np.square(R-G) + ((R-B)*(G-B)))[has_color]
-	# print('raiz',(raiz<10).astype(int).sum(),' min',raiz.min(),' max', raiz.max())
-	# cima = ((((R-G)+(R-B))/2)[has_color])
-	# print('cima',(cima>1).astype(int).sum(),' min',cima.min(),' max', cima.max())
 
 	middle = ((((R-G)+(R-B))/2)[has_color])/(np.sqrt(np.square(R-G) + ((R-B)*(G-B)))[has_color])
-	# print(middle.shape)
-	# print('middle',(middle>1).astype(int).sum()/np.ones(middle.shape).sum(),' max', middle.max())
+
 	teta[has_color] = np.arccos(middle)
 	teta[gray] = np.pi/2
 	
@@ -59,8 +60,7 @@ def HSI2BGR(H,S,I):
 
 
 im = cv2.imread("imagens/peppers.tiff",1).astype(np.float64)
-# print(type(im)) 
-# im[:,:,2] = 1-im[:,:,2]
+
 R = im[:,:,2]
 G = im[:,:,1]
 B = im[:,:,0]
@@ -71,7 +71,6 @@ aj = 200
 W = 20
 
 nR[R>180] = 255
-# nR[np.absolute(R-aj)<W/2] = 255
 H,S,I = BGR2HSI(im)
 ajuste = 0
 ajuste2 = 0.2
